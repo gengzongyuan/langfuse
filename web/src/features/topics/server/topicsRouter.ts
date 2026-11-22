@@ -36,6 +36,7 @@ import {
   getTopicRun,
   readTopicMapAssignments,
   readTopicsModelSettings,
+  readTopicsEmbeddingLock,
   checkTopicsModelSettings,
   saveTopicsSetup,
   setTopicsAutomaticProcessing,
@@ -496,9 +497,13 @@ export const topicsRouter = createTRPCRouter({
       });
       return rule;
     }),
-  modelSettings: topicsProcedure.query(({ input }) =>
-    readTopicsModelSettings(input.projectId),
-  ),
+  modelSettings: topicsProcedure.query(async ({ input }) => {
+    const [settings, embeddingLock] = await Promise.all([
+      readTopicsModelSettings(input.projectId),
+      readTopicsEmbeddingLock(input.projectId),
+    ]);
+    return { ...settings, embeddingLock };
+  }),
   tracingReadinessSettings: topicsProcedure.query(({ input }) =>
     getTracingReadinessSettings(input.projectId),
   ),
